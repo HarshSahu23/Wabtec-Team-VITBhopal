@@ -1,0 +1,33 @@
+|------------------------------------------------- ERROR CODE LISTING -------------------------------------------------|
+LEGEND:
+Ticks (hex):       Internal time from power-on (1 Tick = 2ms)
+Speed (km/h):      Train speed
+Speed1 (km/h):     Axle 1 speed
+Speed2 (km/h):     Axle 2 speed
+Speed3 (km/h):     Axle 3 speed
+Speed4 (km/h):     Axle 4 speed
+Odometer (km):     Travel distance
+
+Nr;Code(hex);Ticks(hex);Date;Time;SW(hex);Speed(km/h);Speed1(km/h);Speed2(km/h);Speed3(km/h);Speed4(km/h);Odometer(km);FILL_1;VENT_1;FILL_2;VENT_2;FILL_3;VENT_3;FILL_4;VENT_4;DEVICE_ON;V5;V45;ZERO_SPEED;WSP_FAILURE;V5_2;V30;V5_1;Condition;Description;
+1;0xA000;0x00000AAC;31/7/24;13:28:13;0x000;40;40;40;40;40;0;0;0;0;0;0;0;0;0;1;1;0;0;1;0;0;1;0;I_POWER_ON
+2;0x0017;0x000057D7;31/7/24;13:28:53;0x000;34;0;0;0;0;0;1;1;1;1;1;1;1;1;1;1;0;0;1;0;0;1;0;AXLE1_LOCK
+3;0x0037;0x000057E3;31/7/24;13:28:53;0x000;34;0;0;0;0;0;1;1;1;1;1;1;1;1;1;1;0;0;1;0;0;1;0;AXLE3_LOCK
+4;0x0027;0x000057FB;31/7/24;13:28:53;0x000;34;0;0;0;0;0;1;1;1;1;1;1;1;1;1;1;0;0;0;0;0;1;0;AXLE2_LOCK
+5;0x0047;0x000057FB;31/7/24;13:28:53;0x000;34;0;0;0;0;0;1;1;1;1;1;1;1;1;1;1;0;0;0;0;0;1;0;AXLE4_LOCK
+ 	...
+120;0x6037;0x000D9DF2;6/8/24;17:36:35;0x000;6;0;0;0;0;101;0;0;0;0;1;1;0;0;1;1;0;0;0;0;1;1;0;AXLE3_LOCK  GONE
+
+|------------------------------------------------ ERROR CODE FREQUENCY ------------------------------------------------|
+Code(hex);Frequency;Description;
+0x6017;11;AXLE1_LOCK  GONE
+0x6027;10;AXLE2_LOCK  GONE
+0x6037;11;AXLE3_LOCK  GONE
+0x6047;11;AXLE4_LOCK  GONE
+0x6012;1;E_SENS_FR1 GONE
+0x6015;2;E_DV1_TOUT GONE
+0x6022;1;E_SENS_FR2 GONE
+0x6025;1;E_DV2_TOUT GONE
+0x6035;1;E_DV3_TOUT GONE
+0x6045;2;E_DV4_TOUT GONE
+    ...
+0x0045;2;E_DV4_TOUT
