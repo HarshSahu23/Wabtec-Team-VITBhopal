@@ -1,4 +1,5 @@
 # Powershell script to setup the entire project as a virtual environment for you
+# Before using, first copy it to the main folder of the python project
 # setup_dev.ps1
 
 # Create virtual environment if it doesn't exist
