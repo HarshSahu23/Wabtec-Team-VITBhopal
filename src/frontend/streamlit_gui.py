@@ -12,7 +12,16 @@ class StreamlitGUI:
     def __init__(self):
         self.init_page_config()
         self.init_session_state()
-        self.color_sequence = px.colors.qualitative.Set3  # Colorful but professional palette
+        # Create an extended color palette by combining multiple qualitative color sequences
+        base_colors = (
+            px.colors.qualitative.Set3 +
+            px.colors.qualitative.Pastel1 +
+            px.colors.qualitative.Set1 +
+            px.colors.qualitative.Pastel2 +
+            px.colors.qualitative.Set2
+        )
+        # Create a function to generate repeating colors while maintaining distinction
+        self.get_color = lambda i: base_colors[i % len(base_colors)]
     
     def init_page_config(self):
         st.set_page_config(
@@ -49,12 +58,8 @@ class StreamlitGUI:
     
     def create_bar_chart(self, filtered_data):
         """Create an interactive bar chart using Plotly"""
-        # Apply sorting if specified
-        if st.session_state.sort_by:
-            filtered_data = filtered_data.sort_values(
-                by=st.session_state.sort_by,
-                ascending=st.session_state.sort_ascending
-            )
+        # Generate colors for each bar
+        colors = [self.get_color(i) for i in range(len(filtered_data))]
         
         fig = go.Figure()
         
@@ -63,7 +68,7 @@ class StreamlitGUI:
                 y=filtered_data['Description'],
                 x=filtered_data['Frequency'],
                 orientation='h',
-                marker_color=self.color_sequence[:len(filtered_data)],
+                marker_color=colors,
                 hovertemplate='<b>Error:</b> %{y}<br>' +
                              '<b>Frequency:</b> %{x}<br>' +
                              '<extra></extra>'
@@ -84,7 +89,7 @@ class StreamlitGUI:
             fig.add_trace(go.Bar(
                 x=filtered_data['Description'],
                 y=filtered_data['Frequency'],
-                marker_color=self.color_sequence[:len(filtered_data)],
+                marker_color=colors,
                 hovertemplate='<b>Error:</b> %{x}<br>' +
                              '<b>Frequency:</b> %{y}<br>' +
                              '<extra></extra>'
@@ -120,19 +125,23 @@ class StreamlitGUI:
                 bgcolor="white",
                 font_size=12,
                 font_family="Arial"
-            )
+            ),
+            # Improve bar appearance
+            bargap=0.2,  # Adjust space between bars
+            plot_bgcolor='white',  # White background
+            paper_bgcolor='white'  # White surrounding
         )
+        
+        # Add grid lines for better readability
+        fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='LightGrey')
+        fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGrey')
         
         return fig
     
     def create_pie_chart(self, filtered_data):
         """Create an interactive pie chart using Plotly"""
-        # Apply sorting if specified
-        if st.session_state.sort_by:
-            filtered_data = filtered_data.sort_values(
-                by=st.session_state.sort_by,
-                ascending=st.session_state.sort_ascending
-            )
+        # Generate colors for each slice
+        colors = [self.get_color(i) for i in range(len(filtered_data))]
         
         fig = go.Figure()
         
@@ -145,7 +154,7 @@ class StreamlitGUI:
                          '<b>Frequency:</b> %{value}<br>' +
                          '<b>Percentage:</b> %{percent}<br>' +
                          '<extra></extra>',
-            marker=dict(colors=self.color_sequence[:len(filtered_data)])
+            marker=dict(colors=colors)
         ))
         
         fig.update_layout(
@@ -176,19 +185,13 @@ class StreamlitGUI:
     
     def create_treemap(self, filtered_data):
         """Create an interactive treemap using Plotly"""
-        # Apply sorting if specified
-        if st.session_state.sort_by:
-            filtered_data = filtered_data.sort_values(
-                by=st.session_state.sort_by,
-                ascending=st.session_state.sort_ascending
-            )
-        
+        # For treemap, we'll use a continuous color scale instead of discrete colors
         fig = px.treemap(
             filtered_data,
             path=['Description'],
             values='Frequency',
             color='Frequency',
-            color_continuous_scale='RdBu',
+            color_continuous_scale=px.colors.sequential.Viridis,  # Changed to Viridis for better distinction
             title='Error Distribution Treemap'
         )
         
@@ -198,7 +201,7 @@ class StreamlitGUI:
         )
         
         return fig
-    
+
     def update_chart(self, data_handler, selected_errors, chart_type):
         if not data_handler or len(selected_errors) == 0:
             st.warning("No data to display. Please select errors to visualize.")
