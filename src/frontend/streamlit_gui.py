@@ -232,12 +232,28 @@ class StreamlitGUI:
             
             # Display metrics in columns
             col1, col2, col3 = st.columns(3)
+            # Adjust font size of metric values using HTML and CSS
             with col1:
-                st.metric("Total Errors", f"{total_errors:,}", help="Total number of errors found")
+                st.markdown(f"""
+                    <div style="text-align: center;">
+                        <div style="font-size:18px; font-weight: bold;">Total Errors</div>
+                        <div style="font-size:24px;">{total_errors:,}</div>
+                    </div>
+                """, unsafe_allow_html=True)
             with col2:
-                st.metric("Most Common Error", max_error['Description'], help="The most frequently occurring error")
+                st.markdown(f"""
+                    <div style="text-align: center;">
+                        <div style="font-size:18px; font-weight: bold;">Most Common Error</div>
+                        <div style="font-size:24px;">{max_error['Description']}</div>
+                    </div>
+                """, unsafe_allow_html=True)
             with col3:
-                st.metric("Highest Frequency", f"{max_error['Frequency']:,}", help="Frequency of the most common error")
+                st.markdown(f"""
+                    <div style="text-align: center;">
+                        <div style="font-size:18px; font-weight: bold;">Highest Frequency</div>
+                        <div style="font-size:24px;">{max_error['Frequency']:,}</div>
+                    </div>
+                """, unsafe_allow_html=True)
             
             # Add sorting options
             sort_col1, sort_col2 = st.columns(2)
