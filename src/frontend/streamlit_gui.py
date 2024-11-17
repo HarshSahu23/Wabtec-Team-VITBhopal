@@ -40,19 +40,67 @@ class StreamlitGUI:
             st.session_state.data_handler = None
         if 'selected_errors' not in st.session_state:
             st.session_state.selected_errors = set()
+        if 'axes_swapped' not in st.session_state:
+            st.session_state.axes_swapped = False
+        if 'sort_by' not in st.session_state:
+            st.session_state.sort_by = None
+        if 'sort_ascending' not in st.session_state:
+            st.session_state.sort_ascending = True
     
     def create_bar_chart(self, filtered_data):
         """Create an interactive bar chart using Plotly"""
+        # Apply sorting if specified
+        if st.session_state.sort_by:
+            filtered_data = filtered_data.sort_values(
+                by=st.session_state.sort_by,
+                ascending=st.session_state.sort_ascending
+            )
+        
         fig = go.Figure()
         
-        fig.add_trace(go.Bar(
-            x=filtered_data['Description'],
-            y=filtered_data['Frequency'],
-            marker_color=self.color_sequence[:len(filtered_data)],
-            hovertemplate='<b>Error:</b> %{x}<br>' +
-                         '<b>Frequency:</b> %{y}<br>' +
-                         '<extra></extra>'  # Removes trace name from hover
-        ))
+        if st.session_state.axes_swapped:
+            fig.add_trace(go.Bar(
+                y=filtered_data['Description'],
+                x=filtered_data['Frequency'],
+                orientation='h',
+                marker_color=self.color_sequence[:len(filtered_data)],
+                hovertemplate='<b>Error:</b> %{y}<br>' +
+                             '<b>Frequency:</b> %{x}<br>' +
+                             '<extra></extra>'
+            ))
+            
+            # Add percentage annotations
+            total = filtered_data['Frequency'].sum()
+            for i, value in enumerate(filtered_data['Frequency']):
+                percentage = (value / total) * 100
+                fig.add_annotation(
+                    y=i,
+                    x=value,
+                    text=f'{percentage:.1f}%',
+                    showarrow=False,
+                    xshift=10
+                )
+        else:
+            fig.add_trace(go.Bar(
+                x=filtered_data['Description'],
+                y=filtered_data['Frequency'],
+                marker_color=self.color_sequence[:len(filtered_data)],
+                hovertemplate='<b>Error:</b> %{x}<br>' +
+                             '<b>Frequency:</b> %{y}<br>' +
+                             '<extra></extra>'
+            ))
+            
+            # Add percentage annotations
+            total = filtered_data['Frequency'].sum()
+            for i, value in enumerate(filtered_data['Frequency']):
+                percentage = (value / total) * 100
+                fig.add_annotation(
+                    x=i,
+                    y=value,
+                    text=f'{percentage:.1f}%',
+                    showarrow=False,
+                    yshift=10
+                )
         
         fig.update_layout(
             title={
@@ -62,11 +110,11 @@ class StreamlitGUI:
                 'xanchor': 'center',
                 'yanchor': 'top'
             },
-            xaxis_title='Error Description',
-            yaxis_title='Frequency',
+            xaxis_title='Frequency' if st.session_state.axes_swapped else 'Error Description',
+            yaxis_title='Error Description' if st.session_state.axes_swapped else 'Frequency',
             showlegend=False,
-            xaxis_tickangle=-45,
-            margin=dict(t=100, l=50, r=50, b=100),
+            xaxis_tickangle=-45 if not st.session_state.axes_swapped else 0,
+            margin=dict(t=100, l=50 if not st.session_state.axes_swapped else 200, r=50, b=100),
             height=600,
             hoverlabel=dict(
                 bgcolor="white",
@@ -75,22 +123,17 @@ class StreamlitGUI:
             )
         )
         
-        # Add percentage annotations on top of bars
-        total = filtered_data['Frequency'].sum()
-        for i, value in enumerate(filtered_data['Frequency']):
-            percentage = (value / total) * 100
-            fig.add_annotation(
-                x=i,
-                y=value,
-                text=f'{percentage:.1f}%',
-                showarrow=False,
-                yshift=10
-            )
-        
         return fig
     
     def create_pie_chart(self, filtered_data):
         """Create an interactive pie chart using Plotly"""
+        # Apply sorting if specified
+        if st.session_state.sort_by:
+            filtered_data = filtered_data.sort_values(
+                by=st.session_state.sort_by,
+                ascending=st.session_state.sort_ascending
+            )
+        
         fig = go.Figure()
         
         fig.add_trace(go.Pie(
@@ -101,7 +144,7 @@ class StreamlitGUI:
             hovertemplate='<b>Error:</b> %{label}<br>' +
                          '<b>Frequency:</b> %{value}<br>' +
                          '<b>Percentage:</b> %{percent}<br>' +
-                         '<extra></extra>',  # Removes trace name from hover
+                         '<extra></extra>',
             marker=dict(colors=self.color_sequence[:len(filtered_data)])
         ))
         
@@ -133,6 +176,13 @@ class StreamlitGUI:
     
     def create_treemap(self, filtered_data):
         """Create an interactive treemap using Plotly"""
+        # Apply sorting if specified
+        if st.session_state.sort_by:
+            filtered_data = filtered_data.sort_values(
+                by=st.session_state.sort_by,
+                ascending=st.session_state.sort_ascending
+            )
+        
         fig = px.treemap(
             filtered_data,
             path=['Description'],
@@ -166,11 +216,47 @@ class StreamlitGUI:
             # Display metrics in columns
             col1, col2, col3 = st.columns(3)
             with col1:
-                st.metric("Total Errors", f"{total_errors:,}")
+                st.metric("Total Errors", f"{total_errors:,}", help="Total number of errors found")
             with col2:
-                st.metric("Most Common Error", max_error['Description'])
+                st.metric("Most Common Error", max_error['Description'], help="The most frequently occurring error")
             with col3:
-                st.metric("Highest Frequency", f"{max_error['Frequency']:,}")
+                st.metric("Highest Frequency", f"{max_error['Frequency']:,}", help="Frequency of the most common error")
+            
+            # Add custom CSS to decrease the font size of the metrics
+            st.markdown("""
+                <style>
+                    .stMetric {
+                        font-size: 0.1rem !important;
+                    }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            # Add sorting options
+            sort_col1, sort_col2 = st.columns(2)
+            with sort_col1:
+                sort_by = st.selectbox(
+                    "Sort by",
+                    ["Description", "Frequency"],
+                    key="sort_by_select"
+                )
+            with sort_col2:
+                sort_order = st.selectbox(
+                    "Sort order",
+                    ["Ascending", "Descending"],
+                    key="sort_order_select"
+                )
+            
+            # Apply sorting based on user selection
+            sort_ascending = sort_order == "Ascending"
+            filtered_data = filtered_data.sort_values(
+                by=sort_by,
+                ascending=sort_ascending
+            )
+            
+            # Add axis swap button for bar chart
+            if chart_type == "Bar Chart":
+                if st.button("Swap Axes", use_container_width=True):
+                    st.session_state.axes_swapped = not st.session_state.axes_swapped
             
             # Create and display the selected chart type
             if chart_type == "Bar Chart":
@@ -198,14 +284,18 @@ class StreamlitGUI:
                 }
             )
             
-            # Display data table with sorting capability
+            # Display data table
             st.subheader("Detailed Data")
             st.dataframe(
-                filtered_data.style.format({'Frequency': '{:,}'}),
+                filtered_data,
+                hide_index=True,
                 use_container_width=True,
-                hide_index=True
+                column_config={
+                    "Description": st.column_config.TextColumn("Description", width="medium"),
+                    "Frequency": st.column_config.NumberColumn("Frequency", format="%d")
+                }
             )
-    
+
     def show_credits(self):
         with st.sidebar.expander("Credits", expanded=False):
             st.markdown("""
