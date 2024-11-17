@@ -7,6 +7,7 @@ from src.backend.data_handler import DataHandler
 import tempfile
 import os
 from pathlib import Path
+from functools import lru_cache
 
 class StreamlitGUI:
     def __init__(self):
@@ -45,6 +46,7 @@ class StreamlitGUI:
         """, unsafe_allow_html=True)
     
     def init_session_state(self):
+        # Existing state variables
         if 'data_handler' not in st.session_state:
             st.session_state.data_handler = None
         if 'selected_errors' not in st.session_state:
@@ -55,6 +57,14 @@ class StreamlitGUI:
             st.session_state.sort_by = None
         if 'sort_ascending' not in st.session_state:
             st.session_state.sort_ascending = True
+        # Add new state variable for annotation toggle
+        if 'show_percentage' not in st.session_state:
+            st.session_state.show_percentage = True  # Default to showing percentages
+ 
+    @lru_cache(maxsize=128)
+    def calculate_percentages(self, total, frequencies):
+        """Cache percentage calculations for better performance"""
+        return [(freq / total) * 100 for freq in frequencies]
     
     def create_bar_chart(self, filtered_data):
         """Create an interactive bar chart using Plotly"""
@@ -62,6 +72,13 @@ class StreamlitGUI:
         colors = [self.get_color(i) for i in range(len(filtered_data))]
         
         fig = go.Figure()
+        
+        # Calculate total for percentages
+        total = filtered_data['Frequency'].sum()
+        frequencies = filtered_data['Frequency'].tolist()
+        
+        # Get cached percentages
+        percentages = self.calculate_percentages(total, tuple(frequencies))
         
         if st.session_state.axes_swapped:
             fig.add_trace(go.Bar(
@@ -74,14 +91,13 @@ class StreamlitGUI:
                              '<extra></extra>'
             ))
             
-            # Add percentage annotations
-            total = filtered_data['Frequency'].sum()
-            for i, value in enumerate(filtered_data['Frequency']):
-                percentage = (value / total) * 100
+            # Add annotations based on user preference
+            for i, (value, percentage) in enumerate(zip(frequencies, percentages)):
+                annotation_text = f'{percentage:.1f}%' if st.session_state.show_percentage else f'{value:,}'
                 fig.add_annotation(
                     y=i,
                     x=value,
-                    text=f'{percentage:.1f}%',
+                    text=annotation_text,
                     showarrow=False,
                     xshift=10
                 )
@@ -95,14 +111,13 @@ class StreamlitGUI:
                              '<extra></extra>'
             ))
             
-            # Add percentage annotations
-            total = filtered_data['Frequency'].sum()
-            for i, value in enumerate(filtered_data['Frequency']):
-                percentage = (value / total) * 100
+            # Add annotations based on user preference
+            for i, (value, percentage) in enumerate(zip(frequencies, percentages)):
+                annotation_text = f'{percentage:.1f}%' if st.session_state.show_percentage else f'{value:,}'
                 fig.add_annotation(
                     x=i,
                     y=value,
-                    text=f'{percentage:.1f}%',
+                    text=annotation_text,
                     showarrow=False,
                     yshift=10
                 )
@@ -126,10 +141,9 @@ class StreamlitGUI:
                 font_size=12,
                 font_family="Arial"
             ),
-            # Improve bar appearance
-            bargap=0.2,  # Adjust space between bars
-            plot_bgcolor='white',  # White background
-            paper_bgcolor='white'  # White surrounding
+            bargap=0.2,
+            plot_bgcolor='white',
+            paper_bgcolor='white'
         )
         
         # Add grid lines for better readability
@@ -137,7 +151,7 @@ class StreamlitGUI:
         fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='LightGrey')
         
         return fig
-    
+
     def create_pie_chart(self, filtered_data):
         """Create an interactive pie chart using Plotly"""
         # Generate colors for each slice
@@ -225,15 +239,6 @@ class StreamlitGUI:
             with col3:
                 st.metric("Highest Frequency", f"{max_error['Frequency']:,}", help="Frequency of the most common error")
             
-            # Add custom CSS to decrease the font size of the metrics
-            st.markdown("""
-                <style>
-                    .stMetric {
-                        font-size: 0.1rem !important;
-                    }
-                </style>
-            """, unsafe_allow_html=True)
-            
             # Add sorting options
             sort_col1, sort_col2 = st.columns(2)
             with sort_col1:
@@ -256,10 +261,22 @@ class StreamlitGUI:
                 ascending=sort_ascending
             )
             
+            # Add button columns for chart controls
+            btn_col1, btn_col2 = st.columns(2)
+            
             # Add axis swap button for bar chart
             if chart_type == "Bar Chart":
-                if st.button("Swap Axes", use_container_width=True):
-                    st.session_state.axes_swapped = not st.session_state.axes_swapped
+                with btn_col1:
+                    if st.button("Swap Axes", use_container_width=True):
+                        st.session_state.axes_swapped = not st.session_state.axes_swapped
+                
+                with btn_col2:
+                    if st.button(
+                        "Change Graph Annotation",
+                        help="Changes the annotated value over each element in the graph from percent to respective quantity",
+                        use_container_width=True
+                    ):
+                        st.session_state.show_percentage = not st.session_state.show_percentage
             
             # Create and display the selected chart type
             if chart_type == "Bar Chart":
@@ -298,7 +315,7 @@ class StreamlitGUI:
                     "Frequency": st.column_config.NumberColumn("Frequency", format="%d")
                 }
             )
-
+    
     def show_credits(self):
         with st.sidebar.expander("Credits", expanded=False):
             st.markdown("""
