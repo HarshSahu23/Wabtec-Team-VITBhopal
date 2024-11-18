@@ -160,17 +160,36 @@ class StreamlitGUI:
                 }
             )
             
-            # Display data table
-            st.subheader("Detailed Data")
-            st.dataframe(
-                filtered_data,
-                hide_index=True,
-                use_container_width=True,
-                column_config={
-                    "Description": st.column_config.TextColumn("Description", width="medium"),
-                    "Frequency": st.column_config.NumberColumn("Frequency", format="%d")
-                }
-            )
+            # Remove or comment out the existing 'Detailed Data' section
+            # st.subheader("Detailed Data")
+            # st.dataframe(...)
+
+            # Add the new 'Get Detailed Data' section
+            st.subheader("Get Detailed Data")
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                if st.session_state.selected_errors:
+                    # Convert set to list and sort for consistent display
+                    all_selected_errors = sorted(list(st.session_state.selected_errors))
+                    selected_error = st.selectbox(
+                        "🔍 Search/Select Error",
+                        options=all_selected_errors,
+                        help="Type to search or select an error to view details"
+                    )
+                    detailed_data = st.session_state.data_handler.ecl[
+                        st.session_state.data_handler.ecl['Description'] == selected_error
+                    ]
+                else:
+                    st.write("No errors selected.")
+            with col2:
+                pass
+
+            # Render detailed data below the columns
+            if st.session_state.selected_errors and not detailed_data.empty:
+                st.table(detailed_data.T)
+            elif st.session_state.selected_errors:
+                st.write("No details available for this error.")
+           
     
     def render(self):
         # Title and description
