@@ -75,29 +75,68 @@ class StreamlitGUI:
             
             # Display metrics in columns
             col1, col2, col3 = st.columns(3)
-            # Adjust font size of metric values using HTML and CSS
-            with col1:
+            # # Create a container card for all metrics
+            # st.markdown("""
+            #     <div style="
+            #         background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            #         border: 1px solid #dee2e6;
+            #         border-radius: 15px;
+            #         padding: 20px;
+            #         margin: 10px 0;
+            #         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            #     ">
+            # """, unsafe_allow_html=True)
+            
+            # Create three columns inside the container
+            metric_cols = st.columns(3)
+            
+            with metric_cols[0]:
                 st.markdown(f"""
-                    <div style="text-align: center;">
-                        <div style="font-size:18px; font-weight: bold;">Total Errors</div>
-                        <div style="font-size:24px;">{total_errors:,}</div>
-                    </div>
-                """, unsafe_allow_html=True)
-            with col2:
-                st.markdown(f"""
-                    <div style="text-align: center;">
-                        <div style="font-size:18px; font-weight: bold;">Most Common Error</div>
-                        <div style="font-size:24px;">{max_error['Description']}</div>
-                    </div>
-                """, unsafe_allow_html=True)
-            with col3:
-                st.markdown(f"""
-                    <div style="text-align: center;">
-                        <div style="font-size:18px; font-weight: bold;">Highest Frequency</div>
-                        <div style="font-size:24px;">{max_error['Frequency']:,}</div>
+                    <div style="
+                        background-color: rgba(248,249,250,0.7);
+                        border: 1px solid #FF5757;
+                        border-radius: 10px;
+                        padding: 15px;
+                        text-align: center;
+                        height: 120px;
+                    ">
+                        <div style="color: #495057; font-size:16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total Errors</div>
+                        <div style="color: #FF5757; font-size:28px; font-weight: bold; margin-top: 10px;">{total_errors:,}</div>
                     </div>
                 """, unsafe_allow_html=True)
             
+            with metric_cols[1]:
+                st.markdown(f"""
+                    <div style="
+                        background-color: rgba(248,249,250,0.7);
+                        border: 1px solid #FF5757;
+                        border-radius: 10px;
+                        padding: 15px;
+                        text-align: center;
+                        height: 120px;
+                    ">
+                        <div style="color: #495057; font-size:16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Most Common Error</div>
+                        <div style="color: #FF5757; font-size:20px; font-weight: bold; margin-top: 10px;">{max_error['Description']}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            
+            with metric_cols[2]:
+                st.markdown(f"""
+                    <div style="
+                        background-color: rgba(248,249,250,0.7);
+                        border: 1px solid #FF5757;
+                        border-radius: 10px;
+                        padding: 15px;
+                        text-align: center;
+                        height: 120px;
+                    ">
+                        <div style="color: #495057; font-size:16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Highest Frequency</div>
+                        <div style="color: #FF5757; font-size:28px; font-weight: bold; margin-top: 10px;">{max_error['Frequency']:,}</div>
+                    </div>
+                """, unsafe_allow_html=True)
+            
+            # Close the container card
+            st.markdown("</div>", unsafe_allow_html=True)
             # Add sorting options
             sort_col1, sort_col2 = st.columns(2)
             with sort_col1:
@@ -256,32 +295,37 @@ class StreamlitGUI:
         
         # Main content
         if st.session_state.data_handler and len(st.session_state.data_handler.ecl_freq_summary) > 0:
-            col1, col2 = st.columns([1, 2])
             
+            col1, col2 = st.columns([1, 3])
+            # st.markdown(
+            #     """
+            #     <style>
+            #     /* Style the first column */
+            #     [data-testid="stHorizontalBlock"] > div:nth-child(1) {
+            #         background-color: rgba(200, 200, 200, 0.2);
+            #         padding: 15px;
+            #         border-radius: 15px;
+            #     }
+            #     </style>
+            #     """,
+            #     unsafe_allow_html=True
+            # )
             with col1:
-                st.subheader("Error Selection")
                 
-                # Select/Clear All buttons
-                col1_1, col1_2 = st.columns(2)
-                with col1_1:
-                    if st.button("Select All", use_container_width=True):
-                        st.session_state.selected_errors = set(
-                            st.session_state.data_handler.ecl_freq_summary['Description']
-                        )
-                with col1_2:
-                    if st.button("Clear All", use_container_width=True):
-                        st.session_state.selected_errors.clear()
+                st.subheader("Error Selection")
                 
                 # Search filter
                 search_term = st.text_input("🔍 Search Errors", "")
                 
                 # Error checkboxes with search filter in a tabular form
                 st.markdown("### Select Errors")
+                
                 error_data = st.session_state.data_handler.ecl_freq_summary
                 filtered_data = error_data[error_data['Description'].str.contains(search_term, case=False)]
                 
                 # Table headings
-                col1_1, col1_2, col1_3 = st.columns([0.1, 0.7, 0.2])
+                col1_1, col1_2, col1_3 = st.columns([0.15, 0.6,0.25])
+                
                 with col1_1:
                     # st.checkbox("", key="select_all_errors")
                     select_all = st.checkbox("", key="select_all_errors")
@@ -311,7 +355,7 @@ class StreamlitGUI:
                         st.write(error_desc)
                     with col1_3:
                         st.write(frequency)
-            
+
             with col2:
                 st.subheader("Visualization")
                 chart_type = st.radio(
