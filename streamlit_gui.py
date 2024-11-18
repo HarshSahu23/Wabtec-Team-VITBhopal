@@ -3,14 +3,14 @@
 import streamlit as st
 import plotly.graph_objects as go
 import plotly.express as px
-from src.backend.data_handler import DataHandler
+from backend.data_handler import DataHandler
 import tempfile
 import os
 from pathlib import Path
 from functools import lru_cache
-from src.frontend.visualizations import create_bar_chart, create_pie_chart, create_treemap, get_color
-from src.frontend.css_utils import inject_main_css, inject_column_css, get_metrics_css  # Import CSS utilities
-from src.frontend.sidebar_utils import show_help, show_credits  # Import sidebar utilities
+from frontend.visualizations import create_bar_chart, create_pie_chart, create_treemap, get_color
+from frontend.css_utils import inject_main_css, inject_column_css, get_metrics_css  # Import CSS utilities
+from frontend.sidebar_utils import show_help, show_credits  # Import sidebar utilities
 
 class StreamlitGUI:
     def __init__(self):
