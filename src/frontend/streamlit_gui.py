@@ -9,6 +9,8 @@ import os
 from pathlib import Path
 from functools import lru_cache
 from src.frontend.visualizations import create_bar_chart, create_pie_chart, create_treemap, get_color
+from src.frontend.css_utils import inject_main_css, inject_column_css, get_metrics_css  # Import CSS utilities
+from src.frontend.sidebar_utils import show_help, show_credits  # Import sidebar utilities
 
 class StreamlitGUI:
     def __init__(self):
@@ -23,20 +25,8 @@ class StreamlitGUI:
             page_icon="📊",
             layout="wide"
         )
-        # Set custom CSS for better spacing and readability
-        st.markdown("""
-            <style>
-                .stRadio > div {
-                    display: flex;
-                    justify-content: center;
-                    gap: 1rem;
-                }
-                .stCheckbox > label {
-                    word-wrap: break-word;
-                    max-width: 300px;
-                }
-            </style>
-        """, unsafe_allow_html=True)
+        # Inject CSS styles using the utility function
+        inject_main_css()
     
     def init_session_state(self):
         # Existing state variables
@@ -73,65 +63,33 @@ class StreamlitGUI:
             total_errors = filtered_data['Frequency'].sum()
             max_error = filtered_data.loc[filtered_data['Frequency'].idxmax()]
             
-            # Display metrics in columns
-            col1, col2, col3 = st.columns(3)
-            # # Create a container card for all metrics
-            # st.markdown("""
-            #     <div style="
-            #         background: linear-gradient(135deg, #ffffff, #f8f9fa);
-            #         border: 1px solid #dee2e6;
-            #         border-radius: 15px;
-            #         padding: 20px;
-            #         margin: 10px 0;
-            #         box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            #     ">
-            # """, unsafe_allow_html=True)
+            # Inject metrics CSS
+            st.markdown(get_metrics_css(), unsafe_allow_html=True)
             
-            # Create three columns inside the container
+            # Display metrics in columns
             metric_cols = st.columns(3)
             
             with metric_cols[0]:
                 st.markdown(f"""
-                    <div style="
-                        background-color: rgba(248,249,250,0.7);
-                        border: 1px solid #FF5757;
-                        border-radius: 10px;
-                        padding: 15px;
-                        text-align: center;
-                        height: 120px;
-                    ">
-                        <div style="color: #495057; font-size:16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Total Errors</div>
-                        <div style="color: #FF5757; font-size:28px; font-weight: bold; margin-top: 10px;">{total_errors:,}</div>
+                    <div class="metric-container">
+                        <div class="metric-title">Total Errors</div>
+                        <div class="metric-value-large">{total_errors:,}</div>
                     </div>
                 """, unsafe_allow_html=True)
             
             with metric_cols[1]:
                 st.markdown(f"""
-                    <div style="
-                        background-color: rgba(248,249,250,0.7);
-                        border: 1px solid #FF5757;
-                        border-radius: 10px;
-                        padding: 15px;
-                        text-align: center;
-                        height: 120px;
-                    ">
-                        <div style="color: #495057; font-size:16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Most Common Error</div>
-                        <div style="color: #FF5757; font-size:20px; font-weight: bold; margin-top: 10px;">{max_error['Description']}</div>
+                    <div class="metric-container">
+                        <div class="metric-title">Most Common Error</div>
+                        <div class="metric-value-medium">{max_error['Description']}</div>
                     </div>
                 """, unsafe_allow_html=True)
             
             with metric_cols[2]:
                 st.markdown(f"""
-                    <div style="
-                        background-color: rgba(248,249,250,0.7);
-                        border: 1px solid #FF5757;
-                        border-radius: 10px;
-                        padding: 15px;
-                        text-align: center;
-                        height: 120px;
-                    ">
-                        <div style="color: #495057; font-size:16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;">Highest Frequency</div>
-                        <div style="color: #FF5757; font-size:28px; font-weight: bold; margin-top: 10px;">{max_error['Frequency']:,}</div>
+                    <div class="metric-container">
+                        <div class="metric-title">Highest Frequency</div>
+                        <div class="metric-value-large">{max_error['Frequency']:,}</div>
                     </div>
                 """, unsafe_allow_html=True)
             
@@ -214,48 +172,6 @@ class StreamlitGUI:
                 }
             )
     
-    def show_credits(self):
-        with st.sidebar.expander("Credits", expanded=False):
-            st.markdown("""
-            ### Error Analyzer v1.0.0
-            
-            **Developed by:**
-            - Akhand Pratap Tiwari
-            - Aryan Rana
-            - Harsh Sahu
-            - Elson Nag
-            
-            **Under the guidance of:**  
-            Wabtec Corporation
-            
-            © 2024 Wabtec Corporation
-            """)
-    
-    def show_help(self):
-        with st.sidebar.expander("Help", expanded=False):
-            st.markdown("""
-            ### Quick Guide
-            
-            1. **Import Data:**
-               - Use the file uploader to select CSV files
-               - You can select multiple files at once
-            
-            2. **Analyze Errors:**
-               - Use checkboxes to select errors
-               - Choose from multiple visualization types
-               - Interact with charts:
-                 - Zoom in/out
-                 - Pan
-                 - Download as PNG
-               - Sort data in the table view
-            
-            3. **Features:**
-               - Interactive visualizations
-               - Key metrics dashboard
-               - Detailed data table
-               - Multiple chart types
-            """)
-    
     def render(self):
         # Title and description
         st.title("📊 Error Analyzer")
@@ -290,8 +206,8 @@ class StreamlitGUI:
                             st.error(f"Failed to load data: {str(e)}")
             
             # Show help and credits in sidebar
-            self.show_help()
-            self.show_credits()
+            show_help()
+            show_credits()
         
         # Main content
         if st.session_state.data_handler and len(st.session_state.data_handler.ecl_freq_summary) > 0:
@@ -311,7 +227,7 @@ class StreamlitGUI:
             #     unsafe_allow_html=True
             # )
             with col1:
-                
+                # Inject column CSS styles
                 st.subheader("Error Selection")
                 
                 # Search filter
