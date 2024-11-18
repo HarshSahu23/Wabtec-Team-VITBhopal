@@ -30,18 +30,18 @@ class StreamlitGUI:
         
         # Add CSS to remove top padding/margin
         # Uncomment this to see the deploy button
-        st.markdown("""
-            <style>
-                .block-container {
-                    padding-top: 0rem;
-                    padding-bottom: 0rem;
-                    margin-top: 0rem;
-                }
-                #MainMenu {visibility: hidden;}
-                header {visibility: hidden;}
-                footer {visibility: hidden;}
-            </style>
-        """, unsafe_allow_html=True)
+        # st.markdown("""
+        #     <style>
+        #         .block-container {
+        #             padding-top: 0rem;
+        #             padding-bottom: 0rem;
+        #             margin-top: 0rem;
+        #         }
+        #         #MainMenu {visibility: hidden;}
+        #         header {visibility: hidden;}
+        #         footer {visibility: hidden;}
+        #     </style>
+        # """, unsafe_allow_html=True)
     
     def init_session_state(self):
         # Existing state variables
