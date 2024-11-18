@@ -43,6 +43,8 @@ class StreamlitGUI:
         # Add new state variable for annotation toggle
         if 'show_percentage' not in st.session_state:
             st.session_state.show_percentage = True  # Default to showing percentages
+        if 'selected_tags' not in st.session_state:
+            st.session_state.selected_tags = set()
  
     @lru_cache(maxsize=128)
     def calculate_percentages(self, total, frequencies):
@@ -181,12 +183,88 @@ class StreamlitGUI:
                     ]
                 else:
                     st.write("No errors selected.")
+            
             with col2:
-                pass
+                if st.session_state.selected_errors and not detailed_data.empty:
+                    # Get all available column names (titles) from the original data
+                    available_tags = st.session_state.data_handler.ecl.columns.tolist()
+                    
+                    # Filter out any previously selected tags that are no longer valid
+                    valid_selected_tags = list(
+                        tag for tag in st.session_state.selected_tags 
+                        if tag in available_tags
+                    )
+                    
+                    # Multi-select widget for titles/columns
+                    new_tag = st.multiselect(
+                        "🏷️ Search/Select Data Fields",
+                        options=available_tags,
+                        default=valid_selected_tags if valid_selected_tags else None,
+                        help="Select which data fields to display"
+                    )
+                    st.session_state.selected_tags = set(new_tag)
+                    
+                    # Display selected tags with delete functionality
+                    # if st.session_state.selected_tags:
+                    #     st.write("Selected Fields:")
+                        
+                    #     # Create a grid layout for tags
+                    #     st.markdown("""
+                    #         <style>
+                    #         .tag-grid {
+                    #             display: flex;
+                    #             flex-wrap: wrap;
+                    #             gap: 8px;
+                    #         }
+                    #         .tag-container {
+                    #             display: inline-flex;
+                    #             align-items: center;
+                    #             padding: 4px 8px;
+                    #             background: #f0f2f6;
+                    #             border-radius: 4px;
+                    #             cursor: pointer;
+                    #             white-space: nowrap;
+                    #         }
+                    #         .tag-container:hover {
+                    #             background: #e0e2e6;
+                    #         }
+                    #         .tag-text {
+                    #             margin-right: 8px;
+                    #         }
+                    #         </style>
+                    #     """, unsafe_allow_html=True)
+                        
+                    #     # Start tag grid container
+                    #     st.markdown('<div class="tag-grid">', unsafe_allow_html=True)
+                        
+                    #     tags_to_remove = set()
+                    #     for tag in sorted(st.session_state.selected_tags):
+                    #         tag_id = f"tag_{tag}"
+                    #         st.markdown(f"""
+                    #             <div class="tag-container" onclick="document.querySelector('#{tag_id}').click()">
+                    #                 <span class="tag-text">📎 {tag}</span>
+                    #                 <span>❌</span>
+                    #             </div>
+                    #         """, unsafe_allow_html=True)
+                            
+                    #         # Hidden button to handle click
+                    #         if st.button("", key=tag_id):
+                    #             tags_to_remove.add(tag)
+                        
+                    #     # End tag grid container
+                    #     st.markdown('</div>', unsafe_allow_html=True)
+                        
+                    #     # Remove any tags that were clicked
+                    #     st.session_state.selected_tags -= tags_to_remove
 
             # Render detailed data below the columns
             if st.session_state.selected_errors and not detailed_data.empty:
-                st.table(detailed_data.T)
+                if st.session_state.selected_tags:
+                    # Filter columns instead of index
+                    filtered_data = detailed_data[list(st.session_state.selected_tags)]
+                    st.table(filtered_data)
+                else:
+                    st.info("Please select data fields to display")
             elif st.session_state.selected_errors:
                 st.write("No details available for this error.")
            
