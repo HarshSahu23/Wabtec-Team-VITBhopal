@@ -27,21 +27,6 @@ class StreamlitGUI:
         )
         # Inject CSS styles using the utility function
         inject_main_css()
-        
-        # Add CSS to remove top padding/margin
-        # Uncomment this to see the deploy button
-        # st.markdown("""
-        #     <style>
-        #         .block-container {
-        #             padding-top: 0rem;
-        #             padding-bottom: 0rem;
-        #             margin-top: 0rem;
-        #         }
-        #         #MainMenu {visibility: hidden;}
-        #         header {visibility: hidden;}
-        #         footer {visibility: hidden;}
-        #     </style>
-        # """, unsafe_allow_html=True)
     
     def init_session_state(self):
         # Existing state variables
@@ -219,59 +204,6 @@ class StreamlitGUI:
                     )
                     st.session_state.selected_tags = set(new_tag)
                     
-                    # Display selected tags with delete functionality
-                    # if st.session_state.selected_tags:
-                    #     st.write("Selected Fields:")
-                        
-                    #     # Create a grid layout for tags
-                    #     st.markdown("""
-                    #         <style>
-                    #         .tag-grid {
-                    #             display: flex;
-                    #             flex-wrap: wrap;
-                    #             gap: 8px;
-                    #         }
-                    #         .tag-container {
-                    #             display: inline-flex;
-                    #             align-items: center;
-                    #             padding: 4px 8px;
-                    #             background: #f0f2f6;
-                    #             border-radius: 4px;
-                    #             cursor: pointer;
-                    #             white-space: nowrap;
-                    #         }
-                    #         .tag-container:hover {
-                    #             background: #e0e2e6;
-                    #         }
-                    #         .tag-text {
-                    #             margin-right: 8px;
-                    #         }
-                    #         </style>
-                    #     """, unsafe_allow_html=True)
-                        
-                    #     # Start tag grid container
-                    #     st.markdown('<div class="tag-grid">', unsafe_allow_html=True)
-                        
-                    #     tags_to_remove = set()
-                    #     for tag in sorted(st.session_state.selected_tags):
-                    #         tag_id = f"tag_{tag}"
-                    #         st.markdown(f"""
-                    #             <div class="tag-container" onclick="document.querySelector('#{tag_id}').click()">
-                    #                 <span class="tag-text">📎 {tag}</span>
-                    #                 <span>❌</span>
-                    #             </div>
-                    #         """, unsafe_allow_html=True)
-                            
-                    #         # Hidden button to handle click
-                    #         if st.button("", key=tag_id):
-                    #             tags_to_remove.add(tag)
-                        
-                    #     # End tag grid container
-                    #     st.markdown('</div>', unsafe_allow_html=True)
-                        
-                    #     # Remove any tags that were clicked
-                    #     st.session_state.selected_tags -= tags_to_remove
-
             # Render detailed data below the columns
             if st.session_state.selected_errors and not detailed_data.empty:
                 if st.session_state.selected_tags:
@@ -325,19 +257,6 @@ class StreamlitGUI:
         if st.session_state.data_handler and len(st.session_state.data_handler.ecl_freq_summary) > 0:
             
             col1, col2 = st.columns([1, 3])
-            # st.markdown(
-            #     """
-            #     <style>
-            #     /* Style the first column */
-            #     [data-testid="stHorizontalBlock"] > div:nth-child(1) {
-            #         background-color: rgba(200, 200, 200, 0.2);
-            #         padding: 15px;
-            #         border-radius: 15px;
-            #     }
-            #     </style>
-            #     """,
-            #     unsafe_allow_html=True
-            # )
             with col1:
                 # Inject column CSS styles
                 st.subheader("Error Selection")

@@ -8,7 +8,7 @@ from pathlib import Path
 def main():
     # Get the absolute path to the frontend directory
     current_dir = Path(__file__).parent
-    frontend_path = current_dir / "src" / "frontend" / "streamlit_gui.py"
+    frontend_path = current_dir / "streamlit_gui.py"
     
     if not frontend_path.exists():
         print(f"Error: Could not find {frontend_path}")
