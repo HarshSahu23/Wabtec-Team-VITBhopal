@@ -26,8 +26,8 @@
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/HarshSahu23/Wabtec3_BrakesGUI_shared.git
-cd Wabtec3_BrakesGUI_shared
+git clone https://github.com/HarshSahu23/Wabtec-Team-VITBhopal.git
+cd Wabtec-Team-VITBhopal
 ```
 
 2. Set up virtual environment:
