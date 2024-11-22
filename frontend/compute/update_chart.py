@@ -161,6 +161,15 @@ def update_chart(data_handler, selected_errors, chart_type):
                     # Filter columns instead of index
                     filtered_data = detailed_data[list(st.session_state.selected_tags)]
                     st.table(filtered_data)
+                    
+                    # Add download button for filtered data
+                    csv = filtered_data.to_csv(index=False).encode('utf-8')
+                    st.download_button(
+                        label="Download data as CSV",
+                        data=csv,
+                        file_name='detailed_data.csv',
+                        mime='text/csv'
+                    )
                 else:
                     st.info("Please select data fields to display")
             elif st.session_state.selected_errors:
