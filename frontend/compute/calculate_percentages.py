@@ -1,3 +1,4 @@
+from functools import lru_cache
 @lru_cache(maxsize=128)
 def calculate_percentages(self, total, frequencies):
     """Cache percentage calculations for better performance"""
