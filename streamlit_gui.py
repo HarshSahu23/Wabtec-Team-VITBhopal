@@ -49,6 +49,8 @@ class StreamlitGUI:
             st.session_state.show_percentage = True  # Default to showing percentages
         if 'selected_tags' not in st.session_state:
             st.session_state.selected_tags = set()
+        if 'error_view_mode' not in st.session_state:
+            st.session_state.error_view_mode = "Individual Errors"
         if 'tab_badges' not in st.session_state:
             st.session_state.tab_badges = {
                 'Brakes Log': {'count': 0, 'color': '#dc3545'},

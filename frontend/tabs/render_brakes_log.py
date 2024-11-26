@@ -19,18 +19,19 @@ def render_brakes_log():
             
             st.subheader("Error Selection")    
             error_view_mode = st.toggle(
-                    "Group Errors",
-                    value=False,
-                    help="Toggle between individual errors and error groups",
-                )
-            error_view_mode = "Error Groups" if error_view_mode else "Individual Errors"
+                "Group Errors",
+                value=st.session_state.error_view_mode == "Error Groups",
+                help="Toggle between individual errors and error groups",
+            )
+            st.session_state.error_view_mode = "Error Groups" if error_view_mode else "Individual Errors"
+            
             # Search filter
             search_term = st.text_input("🔍 Search", "")
             
             # Reset selected errors when switching modes
-            if 'last_view_mode' not in st.session_state or st.session_state.last_view_mode != error_view_mode:
+            if 'last_view_mode' not in st.session_state or st.session_state.last_view_mode != st.session_state.error_view_mode:
                 st.session_state.selected_errors = set()
-                st.session_state.last_view_mode = error_view_mode
+                st.session_state.last_view_mode = st.session_state.error_view_mode
             
             # Table headings
             col1_1, col1_2, col1_3 = st.columns([0.15, 0.6, 0.25])
@@ -44,7 +45,7 @@ def render_brakes_log():
                 st.markdown("**Frequency**")
             
             # Handling Individual Errors
-            if error_view_mode == "Individual Errors":
+            if st.session_state.error_view_mode == "Individual Errors":
                 error_data = st.session_state.data_handler.ecl_freq_summary
                 filtered_data = error_data[error_data['Description'].str.contains(search_term, case=False)]
                 

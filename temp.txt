@@ -91,14 +91,4 @@ E_SPEED_5_2 (Group: Board Errors): 5 occurrences
 Total Unique Error Groups: 6
 Error Groups: Power On Event, Axle Lock Group, Speed Sensor Error, Dump Valve Errors, Unclassified, Board Errors
 ============================================================================================================================================================
-# Inject column CSS styles
-            col1, col2 = st.columns([1, 3])
-            with col1:
-                st.subheader("Error Selection")
-            with col2:
-                # Switch between Individual and Grouped Errors
-                error_view_mode = st.radio(
-                    "View Mode", 
-                    ["Individual Errors", "Error Groups"], 
-                    index=0
-                )
+Axle Lock Group, Speed Sesnsor Error, DUMP valve Errors, Board Errors, POWER ON Event

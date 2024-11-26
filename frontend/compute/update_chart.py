@@ -117,28 +117,56 @@ def update_chart(data_handler, selected_errors, chart_type):
             # st.subheader("Detailed Data")
             # st.dataframe(...)
 
-            # Add the new 'Get Detailed Data' section
+            # Add the new 'Get Detailed Data' section with group support
             st.subheader("Get Detailed Data")
             col1, col2 = st.columns([1, 3])
+            
             with col1:
-                if st.session_state.selected_errors:
-                    # Convert set to list and sort for consistent display
-                    all_selected_errors = sorted(list(st.session_state.selected_errors))
-                    selected_error = st.selectbox(
-                        "🔍 Search/Select Error",
-                        options=all_selected_errors,
-                        help="Type to search or select an error to view details"
+                # Check if we're in grouped error mode
+                if hasattr(st.session_state, 'error_view_mode') and st.session_state.error_view_mode == "Error Groups":
+                    # Get unique error groups from the grouped_ecl dataframe
+                    error_groups = st.session_state.data_handler.grouped_ecl['Error Group'].unique()
+                    
+                    # Select error group
+                    selected_group = st.selectbox(
+                        "🔍 Select Error Group",
+                        options=error_groups,
+                        help="Select an error group to view its details"
                     )
-                    detailed_data = st.session_state.data_handler.ecl[
-                        st.session_state.data_handler.ecl['Description'] == selected_error
-                    ]
+                    
+                    # Filter detailed data for the selected group
+                    if selected_group:
+                        detailed_data = st.session_state.data_handler.grouped_ecl[
+                            st.session_state.data_handler.grouped_ecl['Error Group'] == selected_group
+                        ]
                 else:
-                    st.write("No errors selected.")
+                    # Original individual error selection logic
+                    if st.session_state.selected_errors:
+                        # Convert set to list and sort for consistent display
+                        all_selected_errors = sorted(list(st.session_state.selected_errors))
+                        selected_error = st.selectbox(
+                            "🔍 Search/Select Error",
+                            options=all_selected_errors,
+                            help="Type to search or select an error to view details"
+                        )
+                        detailed_data = st.session_state.data_handler.ecl[
+                            st.session_state.data_handler.ecl['Description'] == selected_error
+                        ]
+                    else:
+                        st.write("No errors selected.")
             
             with col2:
-                if st.session_state.selected_errors and not detailed_data.empty:
+                # Check if we're in grouped error mode or have individual errors selected
+                if (hasattr(st.session_state, 'error_view_mode') and 
+                    st.session_state.error_view_mode == "Error Groups" and 
+                    selected_group) or \
+                   (st.session_state.selected_errors and not detailed_data.empty):
+                    
                     # Get all available column names (titles) from the original data
-                    available_tags = st.session_state.data_handler.ecl.columns.tolist()
+                    if hasattr(st.session_state, 'error_view_mode') and st.session_state.error_view_mode == "Error Groups":
+                        available_tags = st.session_state.data_handler.grouped_ecl.columns.tolist()
+                    else:
+                        available_tags = st.session_state.data_handler.ecl.columns.tolist()
                     
                     # Filter out any previously selected tags that are no longer valid
                     valid_selected_tags = list(
@@ -154,11 +182,15 @@ def update_chart(data_handler, selected_errors, chart_type):
                         help="Select which data fields to display"
                     )
                     st.session_state.selected_tags = set(new_tag)
-                    
+            
             # Render detailed data below the columns
-            if st.session_state.selected_errors and not detailed_data.empty:
+            if (hasattr(st.session_state, 'error_view_mode') and 
+                st.session_state.error_view_mode == "Error Groups" and 
+                selected_group) or \
+               (st.session_state.selected_errors and not detailed_data.empty):
+                
                 if st.session_state.selected_tags:
-                    # Filter columns instead of index
+                    # Filter columns 
                     filtered_data = detailed_data[list(st.session_state.selected_tags)]
                     st.table(filtered_data)
                     
