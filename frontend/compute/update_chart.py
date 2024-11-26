@@ -117,93 +117,66 @@ def update_chart(data_handler, selected_errors, chart_type):
             # st.subheader("Detailed Data")
             # st.dataframe(...)
 
-            # Add the new 'Get Detailed Data' section with group support
+            # Add the new 'Get Detailed Data' section with improved selection
             st.subheader("Get Detailed Data")
             col1, col2 = st.columns([1, 3])
-            
+
             with col1:
-                # Check if we're in grouped error mode
-                if hasattr(st.session_state, 'error_view_mode') and st.session_state.error_view_mode == "Error Groups":
-                    # Get unique error groups from the grouped_ecl dataframe
-                    error_groups = st.session_state.data_handler.grouped_ecl['Error Group'].unique()
-                    
+                if st.session_state.error_view_mode == "Error Groups":
+                    # Get unique error groups
+                    error_groups = data_handler.grouped_ecl['Error Group'].unique()
                     # Select error group
                     selected_group = st.selectbox(
-                        "🔍 Select Error Group",
+                        "Select Error Group",
                         options=error_groups,
                         help="Select an error group to view its details"
                     )
-                    
-                    # Filter detailed data for the selected group
                     if selected_group:
-                        detailed_data = st.session_state.data_handler.grouped_ecl[
-                            st.session_state.data_handler.grouped_ecl['Error Group'] == selected_group
+                        detailed_data = data_handler.grouped_ecl[
+                            data_handler.grouped_ecl['Error Group'] == selected_group
                         ]
+                    else:
+                        st.write("No error group selected.")
+                        return
                 else:
-                    # Original individual error selection logic
-                    if st.session_state.selected_errors:
-                        # Convert set to list and sort for consistent display
-                        all_selected_errors = sorted(list(st.session_state.selected_errors))
+                    if selected_errors:
                         selected_error = st.selectbox(
-                            "🔍 Search/Select Error",
-                            options=all_selected_errors,
-                            help="Type to search or select an error to view details"
+                            "Select Error",
+                            options=list(selected_errors),
+                            help="Select an error to view details"
                         )
-                        detailed_data = st.session_state.data_handler.ecl[
-                            st.session_state.data_handler.ecl['Description'] == selected_error
+                        detailed_data = data_handler.ecl[
+                            data_handler.ecl['Description'] == selected_error
                         ]
                     else:
                         st.write("No errors selected.")
-            
+                        return
+
             with col2:
-                # Check if we're in grouped error mode or have individual errors selected
-                if (hasattr(st.session_state, 'error_view_mode') and 
-                    st.session_state.error_view_mode == "Error Groups" and 
-                    selected_group) or \
-                   (st.session_state.selected_errors and not detailed_data.empty):
-                    
-                    # Get all available column names (titles) from the original data
-                    if hasattr(st.session_state, 'error_view_mode') and st.session_state.error_view_mode == "Error Groups":
-                        available_tags = st.session_state.data_handler.grouped_ecl.columns.tolist()
-                    else:
-                        available_tags = st.session_state.data_handler.ecl.columns.tolist()
-                    
-                    # Filter out any previously selected tags that are no longer valid
-                    valid_selected_tags = list(
-                        tag for tag in st.session_state.selected_tags 
-                        if tag in available_tags
-                    )
-                    
-                    # Multi-select widget for titles/columns
-                    new_tag = st.multiselect(
-                        "🏷️ Search/Select Data Fields",
+                if not detailed_data.empty:
+                    # Get available columns
+                    available_tags = detailed_data.columns.tolist()
+                    # Use multiselect instead of pills
+                    selected_tags = st.multiselect(
+                        "Select Data Fields",
                         options=available_tags,
-                        default=valid_selected_tags if valid_selected_tags else None,
+                        default=available_tags,
                         help="Select which data fields to display"
                     )
-                    st.session_state.selected_tags = set(new_tag)
-            
-            # Render detailed data below the columns
-            if (hasattr(st.session_state, 'error_view_mode') and 
-                st.session_state.error_view_mode == "Error Groups" and 
-                selected_group) or \
-               (st.session_state.selected_errors and not detailed_data.empty):
-                
-                if st.session_state.selected_tags:
-                    # Filter columns 
-                    filtered_data = detailed_data[list(st.session_state.selected_tags)]
-                    st.table(filtered_data)
-                    
-                    # Add download button for filtered data
-                    csv = filtered_data.to_csv(index=False).encode('utf-8')
-                    st.download_button(
-                        label="Download data as CSV",
-                        data=csv,
-                        file_name='detailed_data.csv',
-                        mime='text/csv'
-                    )
+
+                    # Display the table
+                    if selected_tags:
+                        filtered_data = detailed_data[selected_tags]
+                        st.dataframe(filtered_data, use_container_width=True)
+                        # Add download button for filtered data
+                        csv = filtered_data.to_csv(index=False).encode('utf-8')
+                        st.download_button(
+                            label="Download data as CSV",
+                            data=csv,
+                            file_name='detailed_data.csv',
+                            mime='text/csv'
+                        )
+                    else:
+                        st.info("Please select data fields to display.")
                 else:
-                    st.info("Please select data fields to display")
-            elif st.session_state.selected_errors:
-                st.write("No details available for this error.")
-    
+                    st.write("No data to display.")
