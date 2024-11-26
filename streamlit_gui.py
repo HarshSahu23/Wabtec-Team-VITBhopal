@@ -9,7 +9,7 @@ import os
 from pathlib import Path
 from functools import lru_cache
 from frontend.compute.visualizations import create_bar_chart, create_pie_chart, create_treemap, get_color
-from frontend.utils.css_utils import inject_main_css, inject_column_css, get_metrics_css  # Import CSS utilities
+from frontend.utils.css_utils import inject_main_css, inject_column_css, get_metrics_css, inject_tab_css  # Import CSS utilities
 from frontend.utils.sidebar_utils import show_help, show_credits  # Import sidebar utilities
 from frontend.tabs.render_brakes_log import render_brakes_log;
 from frontend.tabs.render_dump_log import render_dump_log;
@@ -30,87 +30,7 @@ class StreamlitGUI:
         )
         # Inject CSS styles using the utility function
         inject_main_css()
-        # Add custom CSS for the navigation tabs
-        st.markdown("""
-        <style>
-        /* Tab container styling */
-        .stTabs {
-            background-color: #f8f9fa;
-            padding: 10px 20px 0 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        
-        /* Tab list styling */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 20px;
-            background-color: transparent;
-            border-bottom: 2px solid #e9ecef;
-            padding: 0 20px;
-        }
-        
-        /* Individual tab styling */
-        .stTabs [data-baseweb="tab"] {
-            height: 50px;
-            padding: 10px 25px;
-            margin-bottom: -2px;
-            border-radius: 10px 10px 0 0;
-            background-color: transparent;
-            border: none;
-            color: #6c757d;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        /* Active tab styling */
-        .stTabs [aria-selected="true"] {
-            background-color: #ffffff !important;
-            color: #0366d6 !important;
-            border-bottom: 3px solid #0366d6;
-            padding-bottom: 8px;
-        }
-        
-        /* Hover effect for tabs */
-        .stTabs [data-baseweb="tab"]:hover {
-            background-color: #f1f3f5;
-            color: #0366d6;
-        }
-        
-        /* Tab panel styling */
-        .stTabs [data-baseweb="tab-panel"] {
-            padding: 20px 0;
-            background-color: transparent;
-        }
-
-        /* Custom badges for tabs */
-        .tab-badge {
-            background-color: #e9ecef;
-            padding: 2px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            margin-left: 8px;
-        }
-
-        /* Animation for tab transitions */
-        .stTabs [data-baseweb="tab-panel"] > div:first-child {
-            animation: fadeIn 0.3s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Custom styling for section headers */
-        .section-header {
-            background: linear-gradient(90deg, #f8f9fa 0%, transparent 100%);
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        inject_tab_css()  # Inject tab CSS
     
     def init_session_state(self):
         # Existing state variables

@@ -10,6 +10,7 @@ from backend.utils.file_types import FileClasses
 from backend.data_processors.ecl_processor import ECLProcessor
 from backend.data_processors.ecf_processor import ECFProcessor
 from backend.data_processors.dmp_processor import DMPProcessor
+from backend.data_processors.ecl_error_grouper import ECLErrorGrouper
 
 class DataHandler:
     def __init__(self, folder_path):
@@ -30,6 +31,7 @@ class DataHandler:
             
             self.__folder_path = folder_path
             self.ecl = pd.DataFrame()
+            self.grouped_ecl = pd.DataFrame()  # New attribute for grouped ECL
             self.ecf = pd.DataFrame()
             self.dmp = pd.DataFrame()
             self.ecl_freq_summary = pd.DataFrame()
@@ -146,23 +148,57 @@ class DataHandler:
             
             if self.ecl.empty:
                 logging.warning("No ECL data processed")
+            else:
+                # Group ECL errors
+                self.grouped_ecl = ECLErrorGrouper.group_errors(self.ecl)
+                
+                # Log grouped ECL data summary
+                self._log_grouped_ecl_summary()
+
             if self.ecf.empty:
                 logging.warning("No ECF data processed")
             if self.dmp.empty:
                 logging.warning("No DMP data processed")
 
-
             self.ecl_freq_summary = ECLProcessor.get_frequency_summary(self.ecl)
             self.filtered_dmp = DMPProcessor.filter_dmp(self.dmp)
+            self.dmp_freq_summary = DMPProcessor.get_frequency_summary(self.filtered_dmp)
             self.dmp_freq_summary = DMPProcessor.get_frequency_summary(self.filtered_dmp)
             
         except Exception as e:
             logging.error(f"Error setting folder: {e}")
             self._reset_state()
+    
+    def _log_grouped_ecl_summary(self):
+        """
+        Log a summary of grouped ECL errors with detailed statistics.
+        """
+        try:
+            # Error Group Distribution
+            print("\n--- Error Group Distribution ---")
+            group_counts = self.grouped_ecl['Error Group'].value_counts()
+            for group, count in group_counts.items():
+                print(f"{group}: {count} errors")
+
+            # Top 10 most frequent errors
+            print("\n--- Top 10 Most Frequent Errors ---")
+            error_freq = self.grouped_ecl['Description'].value_counts().head(10)
+            for error, count in error_freq.items():
+                error_group = self.grouped_ecl[self.grouped_ecl['Description'] == error]['Error Group'].iloc[0]
+                print(f"{error} (Group: {error_group}): {count} occurrences")
+
+            # Unique error groups
+            unique_groups = self.grouped_ecl['Error Group'].unique()
+            print(f"\nTotal Unique Error Groups: {len(unique_groups)}")
+            print("Error Groups:", ", ".join(unique_groups))
+
+        except Exception as e:
+            logging.error(f"Error logging grouped ECL summary: {e}")
 
     def _reset_state(self):
         """Reset instance variables to empty state."""
         self.ecl = pd.DataFrame()
+        self.grouped_ecl = pd.DataFrame()  # Add reset for grouped_ecl
         self.ecf = pd.DataFrame()
         self.dmp = pd.DataFrame()
         self.filtered_dmp = pd.DataFrame()
@@ -183,6 +219,7 @@ if __name__ == "__main__":
         # Print processing results
         print("Data processed successfully.")
         print(f"ECL Rows: {len(dh.ecl)}")
+        print(f"Grouped ECL Rows: {len(dh.grouped_ecl)}")
         print(f"ECF Rows: {len(dh.ecf)}")
         print(f"DMP Rows: {len(dh.dmp)}")
         

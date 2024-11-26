@@ -1,0 +1,104 @@
+E_DV1_TOUT, E_DV2_TOUT, E_DV3_TOUT, E_DV4_TOUT
+
+
+some example of such errors are : {AXLE1_LOCK, AXLE2_LOCK, AXLE3_LOCK, AXLE4_LOCK} or {E_DV1_TOUT, E_DV2_TOUT, E_DV3_TOUT, E_DV4_TOUT}
+
+so what you need to do is generate a data frame that groups errors which has same starting names but differ from each other by a digit (like AXLE1, AXLE2) or differ from each other by a segment (E_DV1, E_DV2). 
+
+Create a data frame that groups such types of errors along with their remaining columns from the csv. I would need to plot those remaining data in GUI at some point so preserve them as well. 
+
+Also to each group type, create a column indicating the keyword 
+
+
+from the "error x.csv" files ecl and ecf data frames are generated. The csv files contains various error descriptions like E_WSP_FAILURE, E_ZERO_SPEED, E_DEVICE_ON, E_SPEED_5_1, E_SPEED_5_2, E_SS_SC_OC2, AXLE1_LOCK, AXLE2_LOCK, AXLE3_LOCK, AXLE4_LOCK, E_DV1_TOUT, E_DV2_TOUT, AXLE3_LOCK GONE, AXLE4_LOCK GONE, E_SS_SC_OC2 GONE, E_DV1_TOUT GONE, E_DV2_TOUT GONE
+
+A) filter out all those errors which are like "ABC_XYZ GONE". We don't need the errors which contains the "GONE" word. 
+B) There is an exhaustive list which groups all the errors in various groups.  One error belongs to only one group. The list is as follows :
+Axle Lock Group
+AXLE1_LOCK
+AXLE2_LOCK
+AXLE3_LOCK
+AXLE4_LOCK
+
+Speed Sesnsor Error
+E_SENS_FR1
+E_SENS_FR2
+E_SENS_FR3
+E_SENS_FR4
+
+DUMP valve Errors
+E_DV1_TOUT
+E_DV2_TOUT
+E_DV3_TOUT
+E_DV4_TOUT
+E_DV1_OC
+E_DV2_OC
+E_DV3_OC
+E_DV4_OC
+
+Board Errors
+E_ZERO_SPEED
+E_SPEED_5
+E_SPEED_5_1
+E_SPEED_5_2
+E_SPEED_30
+E_SPEED_45
+E_WSP_FAILURE
+E_DEVICE_ON
+
+POWER ON Event
+I_POWER_ON 
+
+C) For the remaining errors, you need to group them according to the list. Create a separate data frame for them. 
+D) Inside the data frame, include the remaining column headers for the error description. For example if a row looks like : [6;0x6017;0x00005ACB;31/7/24;13:28:54;0x000;0;0;0;0;0;0;0;0;0;0;0;0;0;0;1;0;0;1;0;1;1;0;0;E_SPEED_5] ; then you need to obviously group this into Board Errors but also preserve all the remaining data like hex code, data etc. 
+E) When you group the errors, introduce an extra column telling the group the belongs to , for example AXLE3_LOCK will belong to the group "Axle Lock"
+
+write python code that restructures the original data frame to include the group of error the error description belongs to. In future I want the user to plot graph based on two types - individually choosing the errors from a list or choosing the error group and then we will plot all those errors belonging to that group. 
+
+So yeah restructure the data frame to include these. 
+
+[don't worry about the DMP_LOG file class, these errors don't occur in that file class]
+
+======================================================================================================================================================
+D:\Harsh Data\Coding\Hackathon\Wabtec Team VITBhopal\backend\data_processors\ecl_error_grouper.py:73:
+FutureWarning:
+
+A value is trying to be set on a copy of a DataFrame or Series through chained assignment using an inplace method.
+The behavior will change in pandas 3.0. This inplace method will never work because the intermediate object on which we are setting values always behaves as a copy.
+
+For example, when doing 'df[col].method(value, inplace=True)', try using 'df.method({col: value}, inplace=True)' or df[col] = df[col].method(value) instead, to perform the operation inplace on the original object.
+======================================================================================================================================================
+--- Error Group Distribution ---
+Axle Lock Group: 81 errors
+Board Errors: 40 errors
+Power On Event: 29 errors
+Speed Sensor Error: 16 errors
+Unclassified: 12 errors
+Dump Valve Errors: 11 errors
+
+--- Top 10 Most Frequent Errors ---
+I_POWER_ON (Group: Power On Event): 29 occurrences
+AXLE1_LOCK (Group: Axle Lock Group): 21 occurrences
+AXLE3_LOCK (Group: Axle Lock Group): 21 occurrences
+AXLE4_LOCK (Group: Axle Lock Group): 21 occurrences
+AXLE2_LOCK (Group: Axle Lock Group): 18 occurrences
+E_SS_SC_OC2 (Group: Unclassified): 11 occurrences
+E_SPEED_45 (Group: Board Errors): 10 occurrences
+E_SENS_FR2 (Group: Speed Sensor Error): 8 occurrences
+E_DEVICE_ON (Group: Board Errors): 6 occurrences
+E_SPEED_5_2 (Group: Board Errors): 5 occurrences
+
+Total Unique Error Groups: 6
+Error Groups: Power On Event, Axle Lock Group, Speed Sensor Error, Dump Valve Errors, Unclassified, Board Errors
+============================================================================================================================================================
+# Inject column CSS styles
+            col1, col2 = st.columns([1, 3])
+            with col1:
+                st.subheader("Error Selection")
+            with col2:
+                # Switch between Individual and Grouped Errors
+                error_view_mode = st.radio(
+                    "View Mode", 
+                    ["Individual Errors", "Error Groups"], 
+                    index=0
+                )
