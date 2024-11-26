@@ -107,10 +107,12 @@ def render_brakes_log():
                 for group_info in group_summary:
                     group = group_info['Group']
                     frequency = group_info['Frequency']
-                    col1_1, col1_2, col1_3 = st.columns([0.1, 0.7, 0.2])
                     
-                    with col1_1:
-                        # Check if group is selected
+                    # Create columns for checkbox, group name, and frequency
+                    col11, col22, col33 = st.columns([0.1, 0.7, 0.2])
+                    
+                    with col11:
+                        # Checkbox for selecting the error group
                         is_selected = group in st.session_state.selected_error_groups
                         if st.checkbox(
                             "", key=f"cb_{group}",
@@ -124,14 +126,15 @@ def render_brakes_log():
                             st.session_state.selected_error_groups.discard(group)
                             st.session_state.selected_errors.difference_update(group_info['Errors'])
                     
-                    with col1_2:
-                        st.write(group)
-                        # Optional: Show tooltips with errors in the group
-                        with st.expander("View Errors"):
+                    with col22:
+                        # Create an expander for each error group
+                        with st.expander(f"{group}"):
+                            # Display errors within the group
                             for error in group_info['Errors']:
                                 st.write(error)
                     
-                    with col1_3:
+                    with col33:
+                        # Display frequency
                         st.write(frequency)
 
         with col2:
