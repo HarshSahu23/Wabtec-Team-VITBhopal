@@ -1,43 +1,58 @@
 from matplotlib import pyplot as plt
-import seaborn as sns
 import math
 
 class Plotter:
-    def plot_bar_chart(x, y, figsize=(10, 3), xlabel="Errors", ylabel="Frequency"):
-        plt.figure(figsize=figsize)
-        plt.xlabel(xlabel=xlabel)
-        plt.ylabel(ylabel=ylabel)
+    @staticmethod
+    def plot_bar_chart(x, y, xlabel="Errors", ylabel="Frequency", figsize=(12, 8)):
+        # Create a bar chart
+        fig, ax = plt.subplots(figsize=figsize)
+        bars = ax.bar(x, y)
+
+        # Add bar labels
+        ax.bar_label(bars, label_type='edge', padding = 4)  # 'edge' places labels at the bar's edge; use 'center' for center placement
+
+        # Add labels and title
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_title('Bar Chart with Labels')
         plt.xticks(rotation=45, ha='right')
         plt.tight_layout()
 
-        ax = sns.barplot(x=x, y=y)
-
-        for p in ax.patches:
-            bar_height = p.get_height()
-            bar_x_pos = p.get_x()
-            bar_width = p.get_width()
-            ax.annotate(int(bar_height), (bar_x_pos + bar_width / 2.0, bar_height),  # Position at top of bar
-                        ha='center', va='bottom')  # Centered horizontally, slightly above the bar
         plt.show()
 
+    @staticmethod
+    def polar_projection(a, b, theta):
+        """Projects points from a unit circle onto an ellipse.
+
+        Args:
+            a: Semi-major axis of the ellipse.
+            b: Semi-minor axis of the ellipse.
+            theta: Angle in radians.
+
+        Returns:
+            Tuple of x and y coordinates of the projected point.
+        """
+        x = a * math.cos(theta)
+        y = b * math.sin(theta)
+        return x, y
+
+    @staticmethod
     def plot_pie_chart(labels, data, figsize=(10, 10)):
-        # Calculate percentages
-        total = sum(data)
-        percentages = [f"{size/total*100:.1f}%" for size in data]
+        fig, ax = plt.subplots(figsize=figsize, subplot_kw=dict(aspect="equal"))
+        wedges, texts = ax.pie(data)
 
-        # Combine labels with data and percentages
-        labels_with_data = [f"{label}\n{size} ({percentage})" for label, size, percentage in zip(labels, data, percentages)]
+        bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
+        kw = dict(arrowprops=dict(arrowstyle="-"), bbox=bbox_props, zorder=0, va="center")
+        
+        for i, p in enumerate(wedges):
+            ang = (p.theta2 - p.theta1)/2. + p.theta1
+            y = math.sin(ang * math.pi / 180)
+            x = math.cos(ang * math.pi / 180)
+            horizontalalignment = {-1: "right", 1: "left"}[int(math.copysign(1, x))]
+            connectionstyle = f"angle,angleA=0,angleB={ang},rad=16"
+            kw["arrowprops"].update({"connectionstyle": connectionstyle})
+            # Using this function for label arrangement
+            xt, yt = Plotter.polar_projection(2, 1.5, ang * math.pi / 180)
+            ax.annotate(labels[i], xy=(x, y), xytext=(xt, yt), horizontalalignment=horizontalalignment, **kw)
 
-        # Plotting a flat pie chart
-        plt.figure(figsize=figsize)
-        plt.pie(data, labels=None, startangle=90, counterclock=False) # Labels with indicating lines are manually added 
-
-        for i, (dataPoint, label) in enumerate(zip(data, labels_with_data)):
-            angle = 90 - (sum(data[:i]) + dataPoint / 2) / total * 360  # Calculate the angle
-            x = 1.2 * math.cos(angle * math.pi / 180)
-            y = 1.2 * math.sin(angle * math.pi / 180)
-            plt.text(x, y, label, ha='center', va='center', fontsize=10)
-            plt.plot([0, x/1.07], [0, y/1.07], linestyle='solid', linewidth=0.8)  # Line from center to text
-
-        plt.axis('equal')  # Equal aspect ratio ensures the pie chart is a circle.
         plt.show()

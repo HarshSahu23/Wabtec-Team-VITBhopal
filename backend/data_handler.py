@@ -3,7 +3,6 @@ import pandas as pd
 import logging
 from tqdm import tqdm
 from backend.utils.logging_config import configure_logging
-from backend.utils.exceptions import FileProcessingError
 from backend.utils.folder_validator import FolderValidator
 from backend.utils.file_classifier import FileClassifier
 from backend.utils.file_types import FileClasses
@@ -56,11 +55,11 @@ class DataHandler:
         merged_df_ecl = pd.DataFrame()
         merged_df_ecf = pd.DataFrame()
         merged_dmp = pd.DataFrame()
-
         try:
             csv_files = glob.glob(f"{folder_path}/*.csv")
-            
-            if not csv_files:
+            logging.info(f'CSV Files found: {csv_files}')
+
+            if len(csv_files) == 0 or csv_files == None:
                 logging.warning(f"No CSV files found in folder: {folder_path}")
                 return merged_df_ecl, merged_df_ecf, merged_dmp
 
@@ -142,6 +141,7 @@ class DataHandler:
         """
         try:
             self.__folder_path = folder_path
+            logging.info(f'Reading files from path: {folder_path}')
             self.ecl, self.ecf, self.dmp = self.__read_csv_from_folder(self.__folder_path)
             
             if self.ecl.empty:
