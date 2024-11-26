@@ -156,11 +156,35 @@ def update_chart(data_handler, selected_errors, chart_type):
                 if not detailed_data.empty:
                     # Get available columns
                     available_tags = detailed_data.columns.tolist()
-                    # Use multiselect instead of pills
+                    
+                    # Define group-specific default tags
+                    group_specific_tags = {
+                        "Axle Lock Group": ['Speed1(km/h)', 'Speed2(km/h)', 'Speed3(km/h)', 'Speed4(km/h)'],
+                        # Add other groups and their specific tags here in future
+                        # "Speed Sensor Error": [...],
+                        # "DUMP valve Errors": [...],
+                        # "Board Errors": [...],
+                        # "POWER ON Event": [...]
+                    }
+                    
+                    # Base default tags
+                    base_default_tags = ['Date', 'Time', 'SW(hex)', 'Speed(km/h)']
+                    
+                    if st.session_state.error_view_mode == "Error Groups":
+                        # Combine Description, Error Group with base tags
+                        default_tags = ['Description', 'Error Group']
+                        # Add group-specific tags if available
+                        if selected_group in group_specific_tags:
+                            default_tags.extend(group_specific_tags[selected_group])
+                        # Add base tags at the end
+                        default_tags.extend(base_default_tags)
+                    else:
+                        default_tags = base_default_tags
+                    
                     selected_tags = st.multiselect(
                         "Select Data Fields",
                         options=available_tags,
-                        default=['Date', 'Time', 'SW(hex)', 'Speed(km/h)'],
+                        default=default_tags,
                         help="Select which data fields to display"
                     )
 
