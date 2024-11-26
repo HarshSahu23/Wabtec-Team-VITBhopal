@@ -160,7 +160,7 @@ def update_chart(data_handler, selected_errors, chart_type):
                     selected_tags = st.multiselect(
                         "Select Data Fields",
                         options=available_tags,
-                        default=available_tags,
+                        default=['Date', 'Time', 'SW(hex)', 'Speed(km/h)'],
                         help="Select which data fields to display"
                     )
 
