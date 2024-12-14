@@ -1,0 +1,49 @@
+{
+    "ERROR_DESCRIPTION": "Description",
+    "ERROR_LOG_TAB": {
+        "Axle Lock Group": ["AXLE1_LOCK", "AXLE2_LOCK", "AXLE3_LOCK", "AXLE4_LOCK"], 
+        "Speed Sensor Error": ["E_SENS_FR1", "E_SENS_FR2", "E_SENS_FR3", "E_SENS_FR4"], 
+        "Dump Valve Errors": ["E_DV1_TOUT", "E_DV2_TOUT", "E_DV3_TOUT", "E_DV4_TOUT", "E_DV1_OC", "E_DV2_OC", "E_DV3_OC", "E_DV4_OC"], 
+        "Board Errors": ["E_ZERO_SPEED", "E_SPEED_5", "E_SPEED_5_1", "E_SPEED_5_2", "E_SPEED_30", "E_SPEED_45", "E_WSP_FAILURE", "E_DEVICE_ON"], 
+        "Power On Event": ["I_POWER_ON"]
+    },
+    "SUMMARY_TAB": {
+        "Speed Sensor Error/Axel_Lock Indication": {
+            "COLUMNS": ["Description", "Axle 1", "Axle 2", "Axle 3",  "Axle 4"], 
+            "Gap Error List": ["E_SENS_FR1", "E_SENS_FR2", "E_SENS_FR3",  "E_SENS_FR4"], 
+            "Open/Short Circuit Error list": ["E_SS_SC_OC1", "E_SS_SC_OC2", "E_SS_SC_OC3", "E_SS_SC_OC4"], 
+            "Axle Locked indication list": ["AXLE1_LOCK", "AXLE2_LOCK", "AXLE3_LOCK", "AXLE4_LOCK"]
+        },
+        "Dump Valve Errors": {
+            "COLUMNS": ["Description", "Axle 1", "Axle 2", "Axle 3", "Axle 4"], 
+            "Short Circuit Error List": ["E_DV1_SC", "E_DV2_SC", "E_DV3_SC", "E_DV4_SC"], 
+            "Open Circuit Error List": ["E_DV1_OC", "E_DV2_OC", "E_DV3_OC", "E_DV4_OC"], 
+            "Time Out list": ["E_DV1_TOUT", "E_DV2_TOUT", "E_DV3_TOUT", "E_DV4_TOUT"]
+        },
+        "Power On Event": {
+            "COLUMNS": ["Description", "Event Count"],
+            "Power On List": ["I_POWER_ON"]
+        },
+        "System Error": {
+            "COLUMNS": ["Description", "Event Count"],
+            "Short circuit detected on DO WSP_FAILURE": ["E_WSP_FAILURE"],
+            "Short circuit detected on DO ZERO_SPEED": ["E_ZERO_SPEED"],
+            "Short circuit detected on DO V5": ["E_SPEED_5"],
+            "Short circuit detected on DO SPEED_5_1": ["E_SPEED_5_1"],
+            "Short circuit detected on DO SPEED_5_2": ["E_SPEED_5_2"],
+            "Short circuit detected on DO V30": ["E_SPEED_30"],
+            "Short circuit detected on DO V45": ["E_SPEED_45"],
+            "Short circuit detected on DO DEVICE_ON": ["E_DEVICE_ON"]
+        }
+    },
+    "FILL_VENT_PAIRS": {
+        "FILL_1": "FILL_1",
+        "VENT_1": "VENT_1",
+        "FILL_2": "FILL_2",
+        "VENT_2": "VENT_2",
+        "FILL_3": "FILL_3",
+        "VENT_3": "VENT_3",
+        "FILL_4": "FILL_4",
+        "VENT_4": "VENT_4"
+    }
+}

@@ -1,7 +1,7 @@
 import streamlit as st
 from frontend.compute.update_chart import update_chart
 from frontend.utils.render_section_header import render_section_header
-from backend.data_processors.ecl_error_grouper import ECLErrorGrouper
+# from backend.data_processors.ecl_error_grouper import ECLErrorGrouper
 
 def render_brakes_log():
     # Title and description
@@ -74,8 +74,8 @@ def render_brakes_log():
             
             # Handling Error Groups
             else:
-                # Get error groups from the grouped_ecl dataframe
-                groups_data = st.session_state.data_handler.grouped_ecl['Error Group'].value_counts()
+                # Get error groups from data_handler
+                error_groups = st.session_state.data_handler.error_grps
                 
                 # Initialize selected_error_groups if not exists
                 if 'selected_error_groups' not in st.session_state:
@@ -83,13 +83,12 @@ def render_brakes_log():
                 
                 # Prepare error group data
                 group_summary = []
-                for group, count in groups_data.items():
-                    group_errors = st.session_state.data_handler.grouped_ecl[
-                        st.session_state.data_handler.grouped_ecl['Error Group'] == group
-                    ]['Description'].unique()
+                for group_name, group_df in error_groups.items():
+                    group_errors = group_df['Description'].tolist()
+                    total_frequency = group_df['Frequency'].sum()
                     group_summary.append({
-                        'Group': group, 
-                        'Frequency': count, 
+                        'Group': group_name,
+                        'Frequency': total_frequency,
                         'Errors': group_errors
                     })
                 
@@ -109,33 +108,30 @@ def render_brakes_log():
                     group = group_info['Group']
                     frequency = group_info['Frequency']
                     
+                    # Apply search filter if there's a search term
+                    if search_term and not any(search_term.lower() in error.lower() for error in group_info['Errors']):
+                        continue
+
                     # Create columns for checkbox, group name, and frequency
                     col11, col22, col33 = st.columns([0.1, 0.7, 0.2])
                     
                     with col11:
-                        # Checkbox for selecting the error group
                         is_selected = group in st.session_state.selected_error_groups
-                        if st.checkbox(
-                            "", key=f"cb_{group}",
-                            value=is_selected
-                        ):
-                            # Add group and its errors
+                        if st.checkbox("", key=f"cb_{group}", value=is_selected):
                             st.session_state.selected_error_groups.add(group)
                             st.session_state.selected_errors.update(group_info['Errors'])
                         else:
-                            # Remove group and its errors
                             st.session_state.selected_error_groups.discard(group)
                             st.session_state.selected_errors.difference_update(group_info['Errors'])
                     
                     with col22:
-                        # Create an expander for each error group
                         with st.expander(f"{group}"):
-                            # Display errors within the group
-                            for error in group_info['Errors']:
-                                st.write(error)
+                            # Display individual errors with their frequencies
+                            group_df = error_groups[group]
+                            for _, row in group_df.iterrows():
+                                st.write(f"{row['Description']} ({row['Frequency']})")
                     
                     with col33:
-                        # Display frequency
                         st.write(frequency)
 
         with col2:

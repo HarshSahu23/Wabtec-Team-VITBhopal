@@ -106,25 +106,25 @@ def update_chart(data_handler, selected_errors, chart_type):
                     'toImageButtonOptions': {
                         'format': 'png',
                         'filename': 'error_analysis',
-                        'height': 600,
-                        'width': 1200,
-                        'scale': 2
+                        'height': 720,
+                        'width': 1280,
+                        'scale': 1
                     }
-                }
+                },
             )
             
             # Remove or comment out the existing 'Detailed Data' section
             # st.subheader("Detailed Data")
             # st.dataframe(...)
 
-            # Add the new 'Get Detailed Data' section with improved selection
+            # Replace the 'Get Detailed Data' section
             st.subheader("Get Detailed Data")
             col1, col2 = st.columns([1, 3])
 
             with col1:
                 if st.session_state.error_view_mode == "Error Groups":
                     # Get unique error groups
-                    error_groups = data_handler.grouped_ecl['Error Group'].unique()
+                    error_groups = list(st.session_state.selected_error_groups)
                     # Select error group
                     selected_group = st.selectbox(
                         "Select Error Group",
@@ -132,13 +132,13 @@ def update_chart(data_handler, selected_errors, chart_type):
                         help="Select an error group to view its details"
                     )
                     if selected_group:
-                        detailed_data = data_handler.grouped_ecl[
-                            data_handler.grouped_ecl['Error Group'] == selected_group
-                        ]
+                        # Get detailed data for the selected group using the new function
+                        detailed_data = data_handler.get_detailed_data_for_group(selected_group)
                     else:
                         st.write("No error group selected.")
                         return
                 else:
+                    # Existing logic for individual errors
                     if selected_errors:
                         selected_error = st.selectbox(
                             "Select Error",
@@ -172,7 +172,7 @@ def update_chart(data_handler, selected_errors, chart_type):
                     
                     if st.session_state.error_view_mode == "Error Groups":
                         # Combine Description, Error Group with base tags
-                        default_tags = ['Description', 'Error Group']
+                        default_tags = ['Description']
                         # Add group-specific tags if available
                         if selected_group in group_specific_tags:
                             default_tags.extend(group_specific_tags[selected_group])

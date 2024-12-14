@@ -3,37 +3,7 @@ import logging
 
 class DMPProcessor:
     @staticmethod
-    def read_dmp(file_path):
-        """
-        Read DMP file with comprehensive error handling.
-        
-        Args:
-            file_path (str): Path to the CSV file
-        
-        Returns:
-            pd.DataFrame: Loaded dataframe or empty dataframe
-        """
-        try:
-            data = pd.read_csv(file_path, low_memory=False)
-            
-            # Additional validation
-            if data.empty:
-                logging.warning(f"Empty dataframe from file: {file_path}")
-            
-            return data
-        
-        except pd.errors.EmptyDataError:
-            logging.error(f"No columns to parse from file: {file_path}")
-            return pd.DataFrame()
-        except pd.errors.ParserError as e:
-            logging.error(f"Parsing error in file {file_path}: {e}")
-            return pd.DataFrame()
-        except Exception as e:
-            logging.error(f"Unexpected error reading DMP file {file_path}: {e}")
-            return pd.DataFrame()
-
-    @staticmethod
-    def filter_dmp(df_dmp):
+    def filter_dmp(df_dmp, jcr):
         """
         Filter DMP dataframe with robust error handling.
         
@@ -48,7 +18,7 @@ class DMPProcessor:
                 logging.warning("Empty or None dataframe passed to filter_dmp")
                 return pd.DataFrame()
 
-            required_columns = ["FILL_1","VENT_1","FILL_2","VENT_2","FILL_3","VENT_3","FILL_4","VENT_4"]
+            required_columns = list(jcr.get_fill_vent_pairs().values())
             
             # Check if all required columns exist
             missing_columns = [col for col in required_columns if col not in df_dmp.columns]
