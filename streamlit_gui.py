@@ -1,85 +1,101 @@
-import sys
-from frontend.gui import StreamlitGUI
-from frontend import cmd_toolset
-import ctypes
-import streamlit.web.cli as stcli
-import sys
+# Import backend
+from backend.data_handler import DataHandler
+# Import frontend tools
+from frontend.compute.visualizations import get_color
+from frontend.utils.render_sidebar import render_sidebar
+from frontend.utils.css_utils import inject_main_css, inject_tab_css  
+# Import GUI Tabs
+from frontend.tabs.render_brakes_log import render_brakes_log;
+from frontend.tabs.render_dump_log import render_dump_log;
+from frontend.tabs.render_summary import render_summary;
+from frontend.tabs.render_settings import render_settings
+# Import core libs
+import streamlit as st
 import os
 from pathlib import Path
-# import qdarkstyle
-# import os
-# def load_stylesheet(file_path):
-#     """Load and return the content of a QSS file."""
-#     with open(file_path, "r") as file:
-#         return file.read()
-# [print(i) for i in list(sys.modules.keys())]
+from functools import lru_cache
+import re  
+#==============================================
 
-def run_cli():
-    """Run the CLI version of the application."""
-    cmd_toolset.main()
-
-def run_gui():
-    """Run the GUI version of the application."""
-    # Get the absolute path to the frontend directory
-    current_dir = Path(__file__).parent
-    frontend_path = current_dir / "frontend" / "gui.py"
+class StreamlitGUI:
+    def __init__(self):
+        self.init_page_config()
+        self.init_session_state()
+        # Use the get_color function from visualizations.py
+        self.get_color = get_color
     
-    if not frontend_path.exists():
-        print(f"Error: Could not find {frontend_path}")
-        sys.exit(1)
+    def init_page_config(self):
+        st.set_page_config(
+            page_title="Error Analyzer",
+            page_icon="📊",
+            layout="wide"
+        )
+        # Inject CSS styles using the utility function
+        inject_main_css()
+        inject_tab_css()  # Inject tab CSS
     
-    # Add the project root to PYTHONPATH
-    root_dir = str(current_dir)
-    if root_dir not in sys.path:
-        sys.path.insert(0, root_dir)
+    def init_session_state(self):
+        # Existing state variables
+        if 'data_handler' not in st.session_state:
+            st.session_state.data_handler = None
+        if 'selected_errors' not in st.session_state:
+            st.session_state.selected_errors = set()
+        if 'axes_swapped' not in st.session_state:
+            st.session_state.axes_swapped = False
+        if 'sort_by' not in st.session_state:
+            st.session_state.sort_by = None
+        if 'sort_ascending' not in st.session_state:
+            st.session_state.sort_ascending = True
+        # Add new state variable for annotation toggle
+        if 'show_percentage' not in st.session_state:
+            st.session_state.show_percentage = True  # Default to showing percentages
+        if 'selected_tags' not in st.session_state:
+            st.session_state.selected_tags = set()
+        if 'error_view_mode' not in st.session_state:
+            st.session_state.error_view_mode = "Individual Errors"
+        if 'tab_badges' not in st.session_state:
+            st.session_state.tab_badges = {
+                'Brakes Log': {'count': 0, 'color': '#dc3545'},
+                'Dump Log': {'count': 0, 'color': '#fd7e14'},
+                'Summary': {'count': 0, 'color': '#198754'}
+            }
+        if 'folder_date' not in st.session_state:
+            st.session_state.folder_date = None
+        if 'depot_name' not in st.session_state:
+            st.session_state.depot_name = None
+        if 'coach_name' not in st.session_state:
+            st.session_state.coach_name = None
+        if 'settings_unlocked' not in st.session_state:
+            st.session_state.settings_unlocked = False
+        if 'pin_attempts' not in st.session_state:
+            st.session_state.pin_attempts = 0
+        if 'last_attempt_time' not in st.session_state:
+            st.session_state.last_attempt_time = 0
     
-    # Set environment variables if needed
-    os.environ['STREAMLIT_THEME'] = "light"
-    
-    # Launch the Streamlit application
-    sys.argv = ["streamlit", "run", str(frontend_path)]
-    sys.exit(stcli.main())
-
-def switch_standard_streams(toSwitch):
-    # When we pass --noconsole flag to pyinstaller it sets the standard
-    # streams to None and all the libs/functions that try to write on
-    # those streams fail. E.g. tqdm fails in this case as it uses stderr
-    # to show progress bar. In order to avoid this situation we use these
-    # two lines which redirect the standard streams from console to the 
-    # files. We need these to work only in case of GUI application and 
-    # not in case of CLI application as we need output on console.
-    if(toSwitch):
-        sys.stdout = open('stdout.log', 'a') # Sets standard ouput 
-        sys.stderr = open('stderr.log', 'a') # Sets standard error
-    else:                            # Reset standard streams to their defaults
-        sys.stdout = sys.__stdout__  # Restore standard output
-        sys.stderr = sys.__stderr__  # Restore standard error
-    # We are still using the stream switch even if don't pass --noconsole
-    # flag as we detach the console in GUI mode and hence switching stream is 
-    # required.
-
-def toggle_console(show):
-    """Show or hide the console window."""
-    kernel32 = ctypes.windll.kernel32
-    user32 = ctypes.windll.user32
-    if not show:
-        user32.ShowWindow(kernel32.GetConsoleWindow(), 0)  # SW_HIDE
-        kernel32.FreeConsole()
+    def render(self):
+        # Create tabs for navigation
+        # Update tabs to include Settings
+        tabs = st.tabs(["Summary", "Error Log", "WSP Activity Log",  "Settings"])
+        
+        # Sidebar content
+        with st.sidebar:
+            render_sidebar()
+        
+        # Render content based on active tab
+        with tabs[0]:
+            render_summary()
+        with tabs[1]:
+            render_brakes_log()
+            pass
+        with tabs[2]:
+            render_dump_log()
+            pass
+        with tabs[3]:  # Add settings tab
+            render_settings()
 
 def main():
-    # If running in CLI mode then don't switch streams and 
-    # let the console remain open.
-    # Else if running in GUI mode then switch the streams and
-    # exit the console.
-    if len(sys.argv) > 1 and sys.argv[1].lower() == "cli":
-        toggle_console(True)
-        switch_standard_streams(False)
-        run_cli()
-    else:
-        # temporarily disabled for debug, pls enable later
-        # toggle_console(False)
-        # switch_standard_streams(True) 
-        run_gui()
+    gui = StreamlitGUI()
+    gui.render()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
