@@ -14,8 +14,6 @@ import streamlit as st
 import os
 from pathlib import Path
 from functools import lru_cache
-import tkinter as tk
-from tkinter import filedialog
 import re  
 #==============================================
 
