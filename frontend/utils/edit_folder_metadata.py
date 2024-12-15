@@ -4,7 +4,7 @@ import streamlit as st
 def edit_folder_metadata():
     # Settings to edit and save folder metadata moved from settings panel to here
     # Add inputs for Date, Depot Name, and Coach Name
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3,col4 = st.columns(4)
     with col1:
         # Date input
         date_value = None
