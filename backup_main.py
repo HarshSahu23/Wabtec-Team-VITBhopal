@@ -22,7 +22,7 @@ def run_gui():
     """Run the GUI version of the application."""
     # Get the absolute path to the frontend directory
     current_dir = Path(__file__).parent
-    frontend_path = current_dir / "frontend" / "gui.py"
+    frontend_path = current_dir / "streamlit_gui.py"
     
     if not frontend_path.exists():
         print(f"Error: Could not find {frontend_path}")
