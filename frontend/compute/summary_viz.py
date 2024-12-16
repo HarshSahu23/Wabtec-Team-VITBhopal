@@ -314,7 +314,7 @@ def create_axle_grouped_bar_chart(df, table_name, random_offset, swap_axes=False
         )
     )
     
-
+    # Add table name to the chart
     fig.add_annotation(
         x=0,
         y=-0.18,

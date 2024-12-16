@@ -39,6 +39,7 @@ class DataHandler:
             self.jcr = JSONConfigReader(json_config_path)
             self.error_grps = dict()
             self.tables = dict()
+            self.fill_vent_events = {}
             # Set csv folder
             self.set_folder(folder_path)
             
@@ -121,6 +122,8 @@ class DataHandler:
             self.error_grps = get_error_groups(self.jcr, self.ecl_freq_summary)
             self.error_group_details = get_detailed_data_for_error_groups(self.ecl, self.error_grps)
             self.tables = get_tables(self.ecl_freq_summary, self.jcr)
+            self.fill_vent_events = DMPProcessor.process_fill_vent_events(self.dmp)
+            # self.print_report()
             # print(self.filtered_dmp)
             
         except Exception as e:
@@ -142,34 +145,52 @@ class DataHandler:
         """Get current folder path."""
         return self.__folder_path
 
-    def print_report(self):
+    def print_report(self, output_file='data_processing_report.log'):
         """
-        Print a detailed report of processed data, including:
-        - Total number of rows for ECL and DMP datasets
-        - Frequency summaries for DMP and ECL
-        - Basic statistics and processing status
+        Generate a detailed report of processed data and write it to a text file.
+
+        Args:
+            output_file (str): The file path to write the report to.
         """
-        print("=" * 20 + "DATA PROCESSING REPORT" + "=" * 20)
+        report_lines = []
+        report_lines.append("=" * 20 + "DATA PROCESSING REPORT" + "=" * 20)
         
-        print("\nDATA SUMMARY:")
-        print(f"ECL Dataset: {len(self.ecl)} rows")
-        print(f"DMP Dataset: {len(self.dmp)} rows")
-        print(f"Filtered DMP Dataset: {len(self.filtered_dmp)} rows")
+        report_lines.append("\nDATA SUMMARY:")
+        report_lines.append(f"ECL Dataset: {len(self.ecl)} rows")
+        report_lines.append(f"DMP Dataset: {len(self.dmp)} rows")
+        report_lines.append(f"Filtered DMP Dataset: {len(self.filtered_dmp)} rows")
         
         if not self.ecl_freq_summary.empty:
-            print("\nECL FREQUENCY SUMMARY:")
-            print(self.ecl_freq_summary)
+            report_lines.append("\nECL FREQUENCY SUMMARY:")
+            report_lines.append(str(self.ecl_freq_summary))
         
         if not self.dmp_freq_summary.empty:
-            print("\nDMP FREQUENCY SUMMARY:")
-            print(self.dmp_freq_summary)
+            report_lines.append("\nDMP FREQUENCY SUMMARY:")
+            report_lines.append(str(self.dmp_freq_summary))
         
-        print("\nPROCESSING STATUS:")
+        report_lines.append("\nPROCESSING STATUS:")
         status = ""
-        status += "\nECL: " + {0: "SUCCESS", 1: "FAIL"}[self.ecl.empty] 
-        status += "\nDMP: " + {0: "SUCCESS", 1: "FAIL"}[self.dmp.empty] 
-        print(f"OVERALL STATUS")
-        print(status)
+        status += "\nECL: " + ("SUCCESS" if not self.ecl.empty else "FAIL")
+        status += "\nDMP: " + ("SUCCESS" if not self.dmp.empty else "FAIL")
+        report_lines.append("OVERALL STATUS")
+        report_lines.append(status)
+        
+        # Add detailed data about fill_vent_events
+        report_lines.append("\nFILL VENT EVENTS:")
+        if self.fill_vent_events:
+            for event, details in self.fill_vent_events.items():
+                report_lines.append(f"\nEvent: {event}")
+                report_lines.append(str(details))
+        else:
+            report_lines.append("No fill vent events processed.")
+        
+        # Write report to file
+        try:
+            with open(output_file, 'w') as file:
+                file.write('\n'.join(report_lines))
+            logging.info(f"Report written to {output_file}")
+        except Exception as e:
+            logging.error(f"Failed to write report to file: {e}")
 
     def get_detailed_data_for_group(self, group_name):
         return self.error_group_details.get(group_name, pd.DataFrame())
@@ -192,6 +213,9 @@ if __name__ == "__main__":
             print("\nDMP Frequency Summary:")
             print(f"\tIndices: {dh.dmp_freq_summary.index}")
             print(f"\tValues: {dh.dmp_freq_summary.values}")
+        
+        # Generate report
+        dh.print_report()
         
     except Exception as e:
         logging.error(f"Critical error in main execution: {e}")
